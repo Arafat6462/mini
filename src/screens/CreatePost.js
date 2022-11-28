@@ -1,12 +1,92 @@
-import { View, Text, Image, StyleSheet, TextInput } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  PermissionsAndroid,
+} from "react-native";
 import React, { useState } from "react";
 import { useRoute } from "@react-navigation/native";
+import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 
 const CreatePost = () => {
   const route = useRoute();
   const [name, setName] = useState("");
   const [userName, setUsername] = useState("");
   const [caption, setCaption] = useState("");
+
+  // Camera permission request
+  const requestCameraPermission = async () => {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          title: "Cool Photo App Camera Permission",
+          message:
+            "Mini App needs access to your camera " +
+            "so you can take awesome pictures.",
+          buttonNeutral: "Ask Me Later",
+          buttonNegative: "Cancel",
+          buttonPositive: "OK",
+        }
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log("You can use the camera");
+        openCamera();
+      } else {
+        console.log("Camera permission denied");
+      }
+    } catch (err) {
+      console.warn(err);
+      console.warn("!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ops");
+    }
+  };
+
+  // gallery permission request
+  const requestGalleryPermission = async () => {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        {
+          title: "Cool Photo App Camera Permission",
+          message:
+            "Cool Photo App needs access to your camera " +
+            "so you can take awesome pictures.",
+          buttonNeutral: "Ask Me Later",
+          buttonNegative: "Cancel",
+          buttonPositive: "OK",
+        }
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log("You can use the camera");
+        openGallery();
+      } else {
+        console.log("Camera permission denied");
+      }
+    } catch (err) {
+      console.warn(err);
+    }
+  };
+
+  // launchCamera
+  const openCamera = async () => {
+    const result = await launchCamera({ mediaType: "photo" });
+    if (result.didCancel) {
+    } else {
+      console.log(result);
+    }
+  };
+
+  // launch Gallery
+  const openGallery = async () => {
+    const result = await launchImageLibrary({ mediaType: "photo" });
+    if (result.didCancel) {
+    } else {
+      console.log(result);
+    }
+  };
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Create Post For {route.params.name}</Text>
@@ -36,6 +116,7 @@ const CreatePost = () => {
         style={styles.textInput}
         onChangeText={(txt) => {
           setName(txt);
+          openCamera();
         }}
         value={name}
       />
@@ -56,6 +137,26 @@ const CreatePost = () => {
         }}
         value={caption}
       />
+      <TouchableOpacity style={styles.btn}>
+        <Text
+          style={styles.btnText}
+          onPress={() => {
+            requestCameraPermission();
+          }}
+        >
+          Pick image from Gallery
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.btn}>
+        <Text
+          style={styles.btnText}
+          onPress={() => {
+            requestGalleryPermission();
+          }}
+        >
+          Pick image from Camera
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -68,7 +169,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: "600",  
+    fontWeight: "600",
     color: "#000",
     alignSelf: "center",
     marginTop: 100,
@@ -126,5 +227,19 @@ const styles = StyleSheet.create({
     paddingRight: 20,
     alignSelf: "center",
     marginTop: 20,
+  },
+  btn: {
+    backgroundColor: "purple",
+    height: 50,
+    borderRadius: 10,
+    width: "80%",
+    alignSelf: "center",
+    marginTop: 30,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  btnText: {
+    fontSize: 16,
+    color: "#fff",
   },
 });
